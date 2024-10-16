@@ -1,0 +1,372 @@
+---
+title: "STA 518 Homework 3"
+author: "Anto"
+date: "2023-10-03"
+output:
+  pdf_document: default
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 8, fig.height = 3.5)
+```
+
+# Let's load some packages to start.
+
+```{r}
+# Load necessary libraries and the gapminder dataset
+library(gapminder)
+library(skimr)
+library(ggplot2)
+library(ggthemes)
+library(RColorBrewer)
+library(forcats)
+library(scales)
+library(dplyr)
+```
+
+# Load the gapminder dataset using data("gapminder").
+
+```{r}
+data("gapminder")
+```
+
+# Load the tidyverse, skimr, and ggthemes packages, and explore the gapminder dataset using `glimpse()` and `?gapminder` to learn about the variables.
+
+```{r}
+glimpse(gapminder)
+?gapminder
+```
+
+Quantitative variables:
+
+year: The year of data.
+lifeExp: Life expectancy at birth.
+pop: Population.
+gdpPercap: GDP per capita.
+
+Categorical variables:
+
+country: Country name.
+continent: Continent to which the country belongs.
+
+
+# Use skim() from the skimr package to further explore the data set and any missing data patterns. How many missing values are there for this data set?
+
+```{r}
+# Use skim() to check for missing values
+skim(gapminder)
+```
+
+There are no missing values.
+
+# Using ggplot2, create a scatterplot showing life expectancy across time, adding descriptive labels of the axes and overall plot. What trend do you notice?
+
+```{r}
+# Scatterplot of life expectancy across time
+ggplot(gapminder, aes(x = year, y = lifeExp)) +
+  geom_point(color = "blue", size = 3) +
+  labs(x = "Year", y = "Life Expectancy",
+       title = "Life Expectancy Across Time",
+       subtitle = "Gapminder Dataset",
+       caption = "Source: Gapminder") +
+  theme_minimal()
+```
+
+Overall, the trend is globally increasing.
+
+# Recreate the plot of life expectancy across time, this time adding an additional smooth line of best fit through the data using geom_smooth(). Include the option se = FALSE in geom_smooth() to suppress the standard error bands around the smooth curves.
+
+```{r}
+ggplot(gapminder, aes(x = year, y = lifeExp)) +
+  geom_point(color = "blue", size = 3) +
+  geom_smooth(method = "lm", se = FALSE, color = "red", linetype = "dashed") +
+  labs(x = "Year", y = "Life Expectancy",
+       title = "Life Expectancy Across Time with Smooth Line of Best Fit",
+       caption = "Source: Gapminder") +
+  theme_minimal()
+```
+
+# Color the points based on which continent the points are representing, including smoothed lines through the points using `geom_smooth()` so that the lines are still colored by continent as well. 
+
+```{r}
+ggplot(gapminder, aes(x = year, y = lifeExp, color = continent)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, aes(group = continent), linetype = "dashed") +
+  labs(x = "Year", y = "Life Expectancy",
+       title = "Life Expectancy Across Time by Continent",
+       caption = "Source: Gapminder") +
+  theme_minimal()
+```
+
+# Which continent / region has the highest life expectancy on average?.
+
+```{r}
+# Calculate average life expectancy by continent
+average_life_expectancy <- gapminder %>%
+  group_by(continent) %>%
+  summarise(avg_life_exp = mean(lifeExp, na.rm = TRUE))
+
+# View the average life expectancy by continent
+print(average_life_expectancy)
+```
+
+Oceania has the highest life expectancy on average.
+
+# Extend the plot from the previous part by faceting by the continent associated with each point so that each continent has its own column.
+
+```{r}
+ggplot(gapminder, aes(x = year, y = lifeExp, color = continent)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, aes(group = continent), linetype = "dashed") +
+  labs(x = "Year", y = "Life Expectancy",
+       title = "Life Expectancy Across Time by Continent",
+       caption = "Source: Gapminder") +
+  facet_wrap(~continent, scales = "free_y") +
+  theme_minimal()
+```
+
+# Modify the colors for each continent to be color-blind friendly using this palette, and separately customize the overall theme of the plot by specifying a complete theme of your choice.
+
+```{r}
+# Define color-blind friendly palette
+color_palette <- brewer.pal(n = 8, name = "Set1")
+
+# Create the plot with points colored by continent, smoothed lines, and faceted by continent
+ggplot(gapminder, aes(x = year, y = lifeExp, color = continent)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, aes(group = continent), linetype = "dashed") +
+  labs(x = "Year", y = "Life Expectancy",
+       title = "Life Expectancy Across Time by Continent",
+       caption = "Source: Gapminder") +
+  facet_wrap(~continent, scales = "free_y") +
+  scale_color_manual(values = color_palette) +  # Set color palette
+  theme_minimal() +  # You can customize the theme further if desired
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    legend.position = "right",
+    legend.text = element_text(size = 12)
+  )
+```
+
+# Rotate the labels on the x-axis 45 degrees by adding a theme() layer with the appropriate option.
+
+```{r}
+ggplot(gapminder, aes(x = year, y = lifeExp, color = continent)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, aes(group = continent), linetype = "dashed") +
+  labs(x = "Year", y = "Life Expectancy",
+       title = "Life Expectancy Across Time by Continent",
+       caption = "Source: Gapminder") +
+  facet_wrap(~continent, scales = "free_y") +
+  scale_color_manual(values = color_palette) +  # Set color palette
+  theme_minimal() +  # You can customize the theme further if desired
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels by 45 degrees
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    axis.text.y = element_text(size = 12),
+    legend.position = "right",
+    legend.text = element_text(size = 12)
+  )
+```
+
+# Specify an argument in the theme() function to suppress the legend.
+
+```{r}
+ggplot(gapminder, aes(x = year, y = lifeExp, color = continent)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE, aes(group = continent), linetype = "dashed") +
+  labs(x = "Year", y = "Life Expectancy",
+       title = "Life Expectancy Across Time by Continent",
+       caption = "Source: Gapminder") +
+  facet_wrap(~continent, scales = "free_y") +
+  scale_color_manual(values = color_palette) +  # Set color palette
+  theme_minimal() +  # You can customize the theme further if desired
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),  # Rotate x-axis labels by 45 degrees
+    legend.position = "none",  # Suppress the legend
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    axis.text.y = element_text(size = 12)
+  )
+```
+
+# Use the following code to create a data set called gapminder2007 which contains the top 20 most populated countries in 2007.
+
+```{r}
+# Create the gapminder2007 dataset
+gapminder2007 <- gapminder %>% dplyr::filter(year == 2007) %>% slice_max(pop, n = 20)
+```
+
+# First, create a bar plot displaying the population of each country using the gapminder2007 dataset using geom_col(). Note that the country names will be overlapping, but we will fix this later.
+
+```{r}
+ggplot(gapminder2007, aes(x = reorder(country, -pop), y = pop)) +
+  geom_col(color = "skyblue") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# In a new code chunk, modify the plot in the previous part so that the bars are sorted based on height using the fct_reorder(country, pop) for the x aesthetic.
+
+```{r}
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop)) +
+  geom_col(color = "skyblue") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+# In another new code chunk, modify the plot so that the color inside of the bars displays which continent each bar represents as well using the fill aesthetic, and change the outline of all bars in the plot to be black by manually setting the color aesthetic. 
+
+```{r}
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) 
+```
+
+# Use the `coord_flip()` function to make the barchart a horizontal bar chart rather than a vertical one to fix the issue of the country names overlapping.
+
+```{r}
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1)) +
+  coord_flip()
+```
+
+# Move the legend to below the plot (to the “bottom”).
+
+```{r}
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1)) +
+  coord_flip() +
+  theme(legend.position = "bottom")  # Move the legend to the bottom
+```
+
+# Add descriptive labels for the axes, title, and a caption below the plot.
+
+```{r}
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  labs(x = "Country", y = "Population", 
+       title = "Population of Top 20 Countries in 2007 (Sorted)",
+       caption = "Source: Gapminder Dataset\nData represents the top 20 most populated countries in 2007.") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1)) +
+  coord_flip() +
+  theme(legend.position = "bottom")  # Move the legend to the bottom
+```
+
+# Add the option legend.title = element_blank() to the `theme()` function to remove the legend title.
+
+```{r}
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  labs(x = "Country", y = "Population", 
+       title = "Population of Top 20 Countries in 2007 (Sorted)",
+       caption = "Source: Gapminder Dataset\nData represents the top 20 most populated countries in 2007.") +
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1),
+        legend.position = "bottom",
+        legend.title = element_blank()) +  # Remove the legend title
+  coord_flip()
+```
+
+# Use color-blind friendly colors by adding a `scale_fill_manual()` layer using the code below:
+
+```{r}
+# Create a color-blind friendly palette
+color_palette <- c("#D55E00", "#009E73", "#56B4E9", "#CC79A7")
+
+# Create a horizontal bar plot with bars sorted based on height, colored by continent, and black outline
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  labs(x = "Country", y = "Population", 
+       title = "Population of Top 20 Countries in 2007 (Sorted)",
+       caption = "Source: Gapminder Dataset\nData represents the top 20 most populated countries in 2007.") +
+  scale_fill_manual(values = color_palette) +  # Set color palette for continents
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1),
+        legend.position = "bottom",
+        legend.title = element_blank()) +  # Remove the legend title
+  coord_flip()
+```
+
+# Display commas in the population numbers rather than scientific notation by adding a `scale_y_continuous()` layer using the code below. Note that the scales package will need to be installed to do this.
+
+```{r}
+
+color_palette <- c("#D55E00", "#009E73", "#56B4E9", "#CC79A7")
+
+# Create a horizontal bar plot with bars sorted based on height, colored by continent, and black outline
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  labs(x = "Country", y = "Population", 
+       title = "Population of Top 20 Countries in 2007 (Sorted)",
+       caption = "Source: Gapminder Dataset\nData represents the top 20 most populated countries in 2007.") +
+  scale_fill_manual(values = color_palette) +  # Set color palette for continents
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1),
+        legend.position = "bottom",
+        legend.title = element_blank()) +  # Remove the legend title
+  scale_y_continuous(labels = scales::comma) +  # Display commas in population numbers
+  coord_flip()
+```
+
+# Remove the excess space in between the bars and the axis by specifying the expand argument inside of the scale_y_continuous() layer using expand = expansion(mult = c(0, .1)).
+
+```{r}
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  labs(x = "Country", y = "Population", 
+       title = "Population of Top 20 Countries in 2007 (Sorted)",
+       caption = "Source: Gapminder Dataset\nData represents the top 20 most populated countries in 2007.") +
+  scale_fill_manual(values = color_palette) +  # Set color palette for continents
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1),
+        legend.position = "bottom",
+        legend.title = element_blank()) +  # Remove the legend title
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, .1))) +  # Remove excess space
+  coord_flip()
+```
+
+# Adding custom theme to a plot.
+
+```{r}
+# Create a color-blind friendly palette
+color_palette <- c("#D55E00", "#009E73", "#56B4E9", "#CC79A7")
+
+# Create a custom theme from the ggthemes package
+custom_theme <- theme_economist() +
+  theme(legend.position = "bottom")  # Ensure the legend stays at the bottom
+
+# Create a horizontal bar plot with bars sorted based on height, colored by continent, and black outline
+ggplot(gapminder2007, aes(x = fct_reorder(country, pop), y = pop, fill = continent)) +
+  geom_col(color = "black") +
+  labs(x = "Country", y = "Population", 
+       title = "Population of Top 20 Countries in 2007 (Sorted)",
+       caption = "Source: Gapminder Dataset\nData represents the top 20 most populated countries in 2007.") +
+  scale_fill_manual(values = color_palette) +  # Set color palette for continents
+  theme_minimal() +
+  theme(axis.text.y = element_text(angle = 0, hjust = 1),
+        legend.position = "bottom",
+        legend.title = element_blank()) +  # Remove the legend title
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, .1))) +  # Remove excess space
+  coord_flip() +
+  custom_theme  # Apply the custom theme
+```
+
+
+
+
